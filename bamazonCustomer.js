@@ -15,6 +15,7 @@ connection.query("SELECT item_id, product_name, department_name, price, stock_qu
     if (err) throw err;
     connection.end();
     showProducts(res);
+    askForPurchase(res)
 });
 
 function showProducts(res) {
@@ -22,27 +23,8 @@ function showProducts(res) {
     var table = new Table({
         head: ['Item ID', 'Product', 'Department', 'Price', 'Qty Avail'],
         colAligns: ['middle', 'left', 'left', 'right', 'middle'],
-        // colWidths: [5, 80, 25, 10, 10],
-        // chars: {
-        //     'top': '═',
-        //     'top-mid': '╤',
-        //     'top-left': '╔',
-        //     'top-right': '╗',
-        //     'bottom': '',
-        //     'bottom-mid': '',
-        //     'bottom-left': '',
-        //     'bottom-right': '',
-        //     'left': '',
-        //     'left-mid': '',
-        //     'mid': '',
-        //     'mid-mid': '',
-        //     'right': '',
-        //     'right-mid': '',
-        //     'middle': ' '
-        // },
         style: { 'padding-left': 1, 'padding-right': 1 }
     });
-
 
     for (var i = 0; i < res.length; i++) {
         var arr = Object.keys(res[i]).map(function(key) { return res[i][key]; });
@@ -50,14 +32,55 @@ function showProducts(res) {
     }
     // list out all the products
     console.log(table.toString());
-    askForPurchase();
 }
 
-function askForPurchase() {
+function askForPurchase(res) {
+    inquirer
+        .prompt([{
+                name: "itemId",
+                type: "input",
+                message: "What is the ID of the item you would like to purchase? [Quit with a Q]",
+                validate: function(value) {
+                    if (value = "G") { process.exit };
+                    for (var i = 0; i < res.length; i++) {
+                        if (res[i].item_id == value) { return true; }
+                    }; // if not found, the whine to the user
+                    var str = "Item " + value + " does not exist, try again";
+                    return str;
+                }
+            },
+            {
+                name: "qty",
+                type: "input",
+                message: "How many would you like? [Quite with a Q]",
+                validate: function(value) {
+                    if (isNaN(value) === false) {
+                        return true;
+                    }
+                    return false;
+                }
+            }
+        ])
+        .then(function(answer) {
 
-    // "What is the ID of the item you would like to purchase? [Quit with a Q]"
-    // get id 
-    // if Q then quit
-    // "How many would you like? [Quite with a Q]"
+            // answer.item contains the item_id
+            // answer.qty contains the qty desired
 
+            // var query = "SELECT position,song,artist,year FROM top5000 WHERE position BETWEEN ? AND ?";
+            // connection.query(query, [answer.start, answer.end], function(err, res) {
+            //   for (var i = 0; i < res.length; i++) {
+            // console.log(
+            //   "Position: " +
+            //     res[i].position +
+            //     " || Song: " +
+            //     res[i].song +
+            //     " || Artist: " +
+            //     res[i].artist +
+            //     " || Year: " +
+            //     res[i].year
+            // );
+            // }
+            // runSearch();
+            // });
+        });
 }
