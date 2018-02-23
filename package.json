@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/zrowe/bamazon#readme",
   "dependencies": {
+    "dotenv": "^5.0.0",
     "mysql": "^2.15.0"
   }
 }
