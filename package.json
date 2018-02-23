@@ -18,7 +18,9 @@
   },
   "homepage": "https://github.com/zrowe/bamazon#readme",
   "dependencies": {
+    "cli-table": "^0.3.1",
     "dotenv": "^5.0.0",
+    "inquirer": "^5.1.0",
     "mysql": "^2.15.0"
   }
 }
