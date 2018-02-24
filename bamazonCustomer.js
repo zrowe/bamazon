@@ -1,7 +1,13 @@
 require("dotenv").config(); // get mySQL credentials
 var mysql = require("mysql");
 var inquirer = require("inquirer");
+var banner = require('simple-banner');
+var request = require("request");
 var Table = require('cli-table');
+
+
+banner.set("The Incredible Pet Supplies Marketplace", "Cobbled together by zrowe", 0);
+console.log("\nWaiting for Inventory Records........");
 
 var connection = mysql.createConnection({
     host: "localhost",
@@ -11,12 +17,17 @@ var connection = mysql.createConnection({
     database: "bamazon"
 });
 
-connection.query("SELECT item_id, product_name, department_name, price, stock_quantity FROM products", function(err, res) {
-    if (err) throw err;
-    connection.end();
-    showProducts(res);
-    askForPurchase(res)
-});
+// Let's rRock an roll......
+getProductRecords();
+
+function getProductRecords() {
+    console.log("Please stanby while we load our product into the display........");
+    connection.query("SELECT item_id, product_name, department_name, price, stock_quantity FROM products", function(err, res) {
+        if (err) throw err;
+        showProducts(res);
+        askForPurchase(res)
+    });
+}
 
 function showProducts(res) {
 
@@ -42,7 +53,7 @@ function askForPurchase(res) {
                 message: "What is the ID of the item you would like to purchase? [Quit with a Q]",
                 validate: function(value) {
 
-                    if (value === "Q") { process.exit(0) };
+                    if (value === "Q") { exit(0) };
 
                     for (var i = 0; i < res.length; i++) {
                         if (res[i].item_id == value) { return true; }
@@ -57,11 +68,11 @@ function askForPurchase(res) {
                 message: "How many would you like? [Quite with a Q]",
                 validate: function(value, answer) {
 
-                    if (value === "Q") { process.exit(0) };
+                    if (value === "Q") { exit(0) };
 
                     var record = res.find(function(obj) { return obj.item_id == answer.itemId; });
                     if (value > 0 && value <= record.stock_quantity) { return true; };
-                    // if not found, the whine to the user
+
                     var str = "Quantity (" + value + ") is not available, please try again";
                     return str;
                 }
@@ -69,24 +80,32 @@ function askForPurchase(res) {
         ])
         .then(function(answer) {
 
-            // answer.item contains the item_id
+            // answer.itemId contains the item_id
             // answer.qty contains the qty desired
 
-            // var query = "SELECT position,song,artist,year FROM top5000 WHERE position BETWEEN ? AND ?";
-            // connection.query(query, [answer.start, answer.end], function(err, res) {
-            //   for (var i = 0; i < res.length; i++) {
-            // console.log(
-            //   "Position: " +
-            //     res[i].position +
-            //     " || Song: " +
-            //     res[i].song +
-            //     " || Artist: " +
-            //     res[i].artist +
-            //     " || Year: " +
-            //     res[i].year
-            // );
-            // }
-            // runSearch();
-            // });
+            var record = res.find(function(obj) { return obj.item_id == answer.itemId; });
+            newQty = record.stock_quantity - answer.qty;
+
+            var query = connection.query(
+                "UPDATE products SET ? WHERE ?", [{
+                        stock_quantity: newQty
+                    },
+                    {
+                        item_id: record.item_id
+                    }
+                ],
+                function(err, res) {
+                    console.log(res.affectedRows + " products updated!\n");
+                    // restart the loop
+                }
+            );
+            getProductRecords(); // restart the order syscl
         });
+}
+
+// called when the shopper wants to leave
+function exit(exitCode) {
+    connection.end();
+    console.log("\n\nThank you for shopping with us.");
+    process.exit(exitCode)
 }
