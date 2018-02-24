@@ -41,7 +41,9 @@ function askForPurchase(res) {
                 type: "input",
                 message: "What is the ID of the item you would like to purchase? [Quit with a Q]",
                 validate: function(value) {
-                    if (value = "G") { process.exit };
+
+                    if (value === "Q") { process.exit(0) };
+
                     for (var i = 0; i < res.length; i++) {
                         if (res[i].item_id == value) { return true; }
                     }; // if not found, the whine to the user
@@ -53,11 +55,15 @@ function askForPurchase(res) {
                 name: "qty",
                 type: "input",
                 message: "How many would you like? [Quite with a Q]",
-                validate: function(value) {
-                    if (isNaN(value) === false) {
-                        return true;
-                    }
-                    return false;
+                validate: function(value, answer) {
+
+                    if (value === "Q") { process.exit(0) };
+
+                    var record = res.find(function(obj) { return obj.item_id == answer.itemId; });
+                    if (value > 0 && value <= record.stock_quantity) { return true; };
+                    // if not found, the whine to the user
+                    var str = "Quantity (" + value + ") is not available, please try again";
+                    return str;
                 }
             }
         ])
