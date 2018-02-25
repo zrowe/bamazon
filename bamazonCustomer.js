@@ -17,11 +17,10 @@ var connection = mysql.createConnection({
     database: "bamazon"
 });
 
-// Let's rRock an roll......
+// Let's Rock an roll......
 getProductRecords();
 
 function getProductRecords() {
-    // console.log("Please standby while we load our product into the display........");
     connection.query("SELECT item_id, product_name, department_name, price, stock_quantity FROM products", function(err, res) {
         if (err) throw err;
         showProducts(res);
@@ -104,12 +103,13 @@ function askForPurchase(res) {
                 ],
                 function(err, res) {
                     if (err) throw err;
-                    console.log("\nYou just purchased " + 
+                    console.log("\n\u0007You just purchased " + 
                     answer.qty + " " + record.product_name + " for $" +
                     (answer.qty * record.price).toFixed(2) + "\n");
                     // console.log(res.affectedRows + " products updated!\n");
                     // restart the loop
-                    getProductRecords(); // restart the order syscl
+                    setTimeout(getProductRecords, 3000);
+                    // getProductRecords(); // restart the order syscl
                 }
             );
 
