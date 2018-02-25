@@ -21,7 +21,7 @@ var connection = mysql.createConnection({
 getProductRecords();
 
 function getProductRecords() {
-    console.log("Please stanby while we load our product into the display........");
+    // console.log("Please standby while we load our product into the display........");
     connection.query("SELECT item_id, product_name, department_name, price, stock_quantity FROM products", function(err, res) {
         if (err) throw err;
         showProducts(res);
@@ -38,7 +38,15 @@ function showProducts(res) {
     });
 
     for (var i = 0; i < res.length; i++) {
-        var arr = Object.keys(res[i]).map(function(key) { return res[i][key]; });
+
+        var arr = [
+        res[i].item_id,
+        res[i].product_name,
+        res[i].department_name,
+        res[i].price.toFixed(2),
+        res[i].stock_quantity
+        ];
+        
         table.push(arr);
     }
     // list out all the products
@@ -95,11 +103,16 @@ function askForPurchase(res) {
                     }
                 ],
                 function(err, res) {
-                    console.log(res.affectedRows + " products updated!\n");
+                    if (err) throw err;
+                    console.log("\nYou just purchased " + 
+                    answer.qty + " " + record.product_name + " for $" +
+                    (answer.qty * record.price).toFixed(2) + "\n");
+                    // console.log(res.affectedRows + " products updated!\n");
                     // restart the loop
+                    getProductRecords(); // restart the order syscl
                 }
             );
-            getProductRecords(); // restart the order syscl
+
         });
 }
 
