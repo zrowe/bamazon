@@ -6,6 +6,7 @@ var request = require("request");
 var Table = require('cli-table');
 
 
+
 banner.set("The Incredible Pet Supplies Marketplace", "Cobbled together by zrowe", 0);
 console.log("\nWaiting for Inventory Records........");
 
