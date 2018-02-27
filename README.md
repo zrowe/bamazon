@@ -28,6 +28,8 @@ You will need to install mySQL (preferably V5.7 or later).  You will want to set
 
 1. Run `npm install`
 
+1. Two files are provided to intialize your mySQL database.  Use schema.sql to create the database and tables.  Use seed.sql to populate the tables with test data.  
+
 1. Create a file named `.env`, add the following to it, replacing the values with your MySQL credentials (no quotes)  This will prevent you from inadvertently loading your credentials into the repo:
 
 ```js
@@ -39,12 +41,10 @@ SQL_PASSWORD=zyxxyplugh
 ```
 
 
-1. Two files are provided to intialize your mySQL database.  Use schema.slq to create the database and tables.  Use seed.sql to populate the tables with test data.  
-
 
 ### Usage
 
-There are two node scripts.  One for the customer and a second one for the manager.
+There are two node scripts:  One script for the customer, and a second script for the manager.
 
 
 #### Customer View
