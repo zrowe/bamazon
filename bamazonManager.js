@@ -38,9 +38,10 @@ function offerOptions() {
                     getLowRecords();
                     break;
                 case "Add to Inventory":
-                updateInventory();
+                    updateInventory();
                     break;
                 case "Add new Product":
+                    addNewProduct();
                     break;
                 case "Quit":
                     exit(0);
@@ -90,9 +91,6 @@ function showProducts(res) {
 }
 
 
-// If a manager selects Add to Inventory, your app should display a prompt that will
-// let the manager "add more" of any item currently in the store.
-
 function updateInventory() {
     connection.query("SELECT item_id, product_name, department_name, price, stock_quantity FROM products", function(err, res) {
         if (err) throw err;
@@ -140,7 +138,7 @@ function askForUpdate(res) {
             var record = res.find(function(obj) { return obj.item_id == answer.itemId; });
             newQty = record.stock_quantity + answer.qty;
 
-            var query = connection.query(
+            connection.query(
                 "UPDATE products SET ? WHERE ?", [{
                         stock_quantity: newQty
                     },
@@ -150,8 +148,8 @@ function askForUpdate(res) {
                 ],
                 function(err, res) {
                     if (err) throw err;
-                    console.log("\n\u0007You just added " + 
-                    answer.qty + " units to " + record.product_name + "\n");
+                    console.log("\n\u0007You just added " +
+                        answer.qty + " units to " + record.product_name + "\n");
 
                     setTimeout(offerOptions, 3000);
                 }
@@ -161,46 +159,98 @@ function askForUpdate(res) {
 }
 
 
+function addNewProduct() {
+    connection.query("SELECT product_name FROM products", function(err, res) {
+        if (err) throw err;
+        getDepartments(res);
+    });
+}
 
 
+function getDepartments(arrProducts) {
+    connection.query("SELECT department_name FROM departments", function(err, res) {
+        if (err) throw err;
+        AskForNewProduct(arrProducts, res);
+    });
+}
 
+function AskForNewProduct(arrProducts, arrDepartments) {
+    inquirer
+        .prompt([{
+                name: "product_name",
+                type: "input",
+                message: "What is the new product name? [Quit with a Q]",
+                validate: function(value) {
 
+                    if (value === "Q") { exit(0) };
 
+                    var str = "'" + value + "' is already our inventory"
+                    for (var i = 0; i < arrProducts.length; i++) {
+                        if (arrProducts[i].product_name === value) { return str; }
+                    };
+                    if (value.length === 0) { return false } // if not found, the whine to the user
+                    return true;
+                }
+            },
+            {
+                name: "department_name",
+                type: "list",
+                message: "Which Department does it belong to?",
+                choices: function() {
 
+                    var choiceArray = [];
+                    for (var i = 0; i < arrDepartments.length; i++) {
+                        choiceArray.push(arrDepartments[i].department_name);
+                    }
+                    choiceArray.push("Quit -- (if you want to start over)")
+                    return choiceArray;
+                }
+            },
+            {
+                name: "price",
+                type: "input",
+                message: "How much does it cost? [Quit with a Q]",
+                validate: function(value) {
 
+                    if (value === "Q") { exit(0) };
 
+                    if (value > 0 && value <= 999) { return true; };
 
+                    var str = "Price of " + value + " is not acceptable, please try again";
+                    return str;
+                }
+            },
+            {
+                name: "stock_quantity",
+                type: "input",
+                message: "How many do we have? [Quit with a Q]",
+                validate: function(value) {
 
+                    if (value === "Q") { exit(0) };
+                    if (value > 0 && value <= 999) { return true; };
 
+                    var str = "Quantity of " + value + " is not acceptable, please try again";
+                    return str;
+                }
+            }
+        ])
+        .then(function(answer) {
 
+            connection.query("INSERT INTO products SET ?", answer,
+                function(err, res) {
+                    if (err) throw err;
+                    console.log("\n\u0007You just added qty " +
+                        answer.stock_quantity + " " +
+                        answer.product_name + " at $" +
+                        (answer.price * 1).toFixed(2) + "each to Department " +
+                        answer.department_name + "\n");
+                    // restart the loop
+                    setTimeout(offerOptions, 3000);
+                }
+            );
 
-
-// If a manager selects Add New Product, it should allow the manager to add a completely new product to the store.
-
-
-//     ?
-//     WHat would you like to do ?
-
-//         View Products
-//     for
-//     Sale
-// Add to Inventory
-// Add new Product
-// Quit
-
-
-
-
-
-
-
-// Add New Product:
-
-//     WHat is the name of the product you would like to Add
-// Which department does this fall Inventory
-// How much does it cost
-// How many do we have
-
+        });
+}
 
 // called when the manager wants to leave
 function exit(exitCode) {
